@@ -17,5 +17,9 @@ namespace Orthodox_Calendar
             InitializeComponent();
         }
 
+        private void monthCalendar1_DateChanged(object sender, DateRangeEventArgs e)
+        {
+
+        }
     }
 }
