@@ -12,9 +12,11 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using HtmlAgilityPack;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
+using System.Text.RegularExpressions;
 
 namespace Orthodox_Calendar
 {
+	
 	public partial class Form1 : Form
 	{
 		private Uri BASE_URL = new Uri("http://days.pravoslavie.ru/Days/");
@@ -24,61 +26,75 @@ namespace Orthodox_Calendar
 			InitializeComponent();
 		}
 
-
-		private string[] GetWebPage(Uri baseUrl, string date)
+		private string[] GetWebPage(Uri baseUrl, string date )
 		{
-			//Uri myUri = new Uri(baseUrl,  date);
-			//         WebRequest request = WebRequest.Create(myUri);
-			//         WebResponse response = request.GetResponse();
-
-			//         using (Stream dataStream = response.GetResponseStream())
-			//         {
-			//             StreamReader reader = new StreamReader(dataStream);
-
-			//             string responseFromServer = reader.ReadToEnd();
-			//         }
-
+		
 			string html = @"http://days.pravoslavie.ru/Days/" + date + ".html";
 			HtmlDocument HD = new HtmlDocument();
 
-			var web = new HtmlWeb
-			{
-				AutoDetectEncoding = false,
-				OverrideEncoding = Encoding.UTF8,
-			};
+			var web = new HtmlWeb{AutoDetectEncoding = false, OverrideEncoding = Encoding.UTF8,};
 
 			HD = web.Load(html);
+			
+			
 
-			HtmlNode week = HD.DocumentNode.SelectSingleNode("//span[@class='DD_NED']");
-			HtmlNode glas = HD.DocumentNode.SelectSingleNode("//span[@class='DD_GLAS']");
-			HtmlNode marks = HD.DocumentNode.SelectSingleNode("//div[@class='DD_TEXT']");
+			string week = HD.DocumentNode.SelectSingleNode("//span[@class='DD_NED']").InnerText;
+			string glas = HD.DocumentNode.SelectSingleNode("//span[@class='DD_GLAS']").InnerText;
+			HtmlNode text = HD.DocumentNode.SelectSingleNode("//div[@class='DD_TEXT']");
+			string saints = text.InnerText;
+			HtmlNode firstline = text.FirstChild;
 
-			string value1 = week.InnerText;
+			
 
-			return new string[] { week.InnerText, glas.InnerText, marks.InnerText };
+			HtmlNode img = firstline.FirstChild;
+
+			string sign = "Служба не имеет праздничного знака";
+			if (img.Attributes["alt"] != null)
+			{
+				sign = img.Attributes["alt"].Value;
+
+			}
+			
+
+
+
+
+
+			object post1 = HD.DocumentNode.SelectSingleNode("//span[@class='DD_TPTXT']").InnerText;
+			object post = "Можно вкушать мясо";
+
+			if (HD.DocumentNode.SelectSingleNode("//span[@class='DD_POST']") != null)
+
+			{
+				post = HD.DocumentNode.SelectSingleNode("//span[@class='DD_POST']").InnerText;
+			}
+
+			return new string[] { week, glas, saints, Convert.ToString(post), Convert.ToString(post1), sign,  };
 		}
-
-		private void button1_Click(object sender, EventArgs e)
-		{
-			var parsedFields = GetWebPage(BASE_URL, "20201002.html");
-
-			label1.Text =  parsedFields[0];
-			label2.Text =  parsedFields[1];
-			textBox1.Text = parsedFields[2];
-			monthCalendar1.SelectionRange.Start.ToString();
-		}
+	
 
 		private void monthCalendar1_DateChanged(object sender, DateRangeEventArgs e)
+
 		{
-			var yearMonthDay = monthCalendar1.SelectionRange.Start.ToString("yyyyMMdd");
+	
+			DateTime now = monthCalendar1.SelectionRange.Start.AddDays(-13);
 
-			var parsedFields = GetWebPage(BASE_URL, yearMonthDay);
-
+			var parsedFields = GetWebPage(BASE_URL, now.ToString("yyyyMMdd"));
+			
 			label1.Text = parsedFields[0];
 			label2.Text = parsedFields[1];
 			textBox1.Text = parsedFields[2];
-			monthCalendar1.SelectionRange.Start.ToString();
+            label3.Text = parsedFields[4];
+			label4.Text = parsedFields[3];
+			label5.Text = parsedFields[5];
+			
+
+
+
+
+
+
+
 		}
 	}
 }
-// monthCalendar1.SelectionRange.Start.ToString();
